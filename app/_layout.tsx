@@ -50,7 +50,7 @@ export default function RootLayout() {
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="post/[id]" options={{ title: "Post" }} />
-            <Stack.Screen name="meetup/[id]" options={{ title: "Meetup" }} />
+            <Stack.Screen name="meetup/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="meetup/create" options={{ title: "New meetup" }} />
           </Stack>
         </PaperProvider>

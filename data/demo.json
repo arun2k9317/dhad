@@ -147,5 +147,35 @@
     { "id": "mp2", "meetup_id": "m1", "user_id": "u3" },
     { "id": "mp3", "meetup_id": "m2", "user_id": "u2" },
     { "id": "mp4", "meetup_id": "m3", "user_id": "u2" }
+  ],
+  "meetupMessages": [
+    {
+      "id": "mm1",
+      "meetup_id": "m1",
+      "user_id": "u1",
+      "content": "Should we meet at Canal St exit or inside the station?",
+      "created_at": "2026-03-28T10:00:00.000Z"
+    },
+    {
+      "id": "mm2",
+      "meetup_id": "m1",
+      "user_id": "u3",
+      "content": "Canal exit works — I’ll bring cash for carts.",
+      "created_at": "2026-03-28T10:15:00.000Z"
+    },
+    {
+      "id": "mm3",
+      "meetup_id": "m1",
+      "user_id": "u1",
+      "content": "Perfect. I’ll grab a table number once we’re seated.",
+      "created_at": "2026-03-28T10:22:00.000Z"
+    },
+    {
+      "id": "mm4",
+      "meetup_id": "m2",
+      "user_id": "u2",
+      "content": "Anyone want to start at Ichiran or go straight to Jiro’s cousin spot?",
+      "created_at": "2026-03-27T09:00:00.000Z"
+    }
   ]
 }

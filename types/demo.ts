@@ -50,6 +50,18 @@ export type MeetupParticipant = {
   user_id: string;
 };
 
+export type MeetupMessage = {
+  id: string;
+  meetup_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+};
+
+export type MeetupMessageWithAuthor = MeetupMessage & {
+  author: Profile | undefined;
+};
+
 export type PostWithMeta = Post & {
   author: Profile | undefined;
   likeCount: number;
@@ -64,6 +76,8 @@ export type CommentWithAuthor = Comment & {
 export type MeetupWithMeta = Meetup & {
   creator: Profile | undefined;
   participantCount: number;
+  /** Avatar URLs for participants shown on cards (capped in API). */
+  participantAvatars: string[];
   joinedByMe: boolean;
   isFull: boolean;
 };

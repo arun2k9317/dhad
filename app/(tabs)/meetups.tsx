@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import {
   ActivityIndicator,
+  Avatar,
   Button,
   Card,
   Chip,
@@ -124,15 +125,21 @@ export default function MeetupsScreen() {
 
   const joinMutation = useMutation({
     mutationFn: (id: string) => demoApi.joinMeetup(id),
-    onSuccess: () => {
+    onSuccess: (_d, meetupId) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.meetups });
+      queryClient.invalidateQueries({ queryKey: queryKeys.meetup(meetupId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.meetupParticipants(meetupId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.meetupMessages(meetupId) });
     },
   });
 
   const leaveMutation = useMutation({
     mutationFn: (id: string) => demoApi.leaveMeetup(id),
-    onSuccess: () => {
+    onSuccess: (_d, meetupId) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.meetups });
+      queryClient.invalidateQueries({ queryKey: queryKeys.meetup(meetupId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.meetupParticipants(meetupId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.meetupMessages(meetupId) });
     },
   });
 
@@ -162,6 +169,39 @@ export default function MeetupsScreen() {
               <Text variant="bodySmall" style={styles.when}>
                 {formatMeetupWhen(item.datetime)}
               </Text>
+              {item.participantCount > 0 ? (
+                <View style={styles.goingBlock}>
+                  <Text variant="labelSmall" style={styles.goingLabel}>
+                    Going
+                  </Text>
+                  <View style={styles.pavatarRow}>
+                    {item.participantAvatars.map((uri, i) => (
+                      <Avatar.Image
+                        key={`${item.id}-pav-${i}`}
+                        size={36}
+                        source={{ uri }}
+                        style={[
+                          styles.pavatar,
+                          { marginLeft: i === 0 ? 0 : -12, zIndex: item.participantAvatars.length - i },
+                        ]}
+                      />
+                    ))}
+                    {item.participantCount > item.participantAvatars.length ? (
+                      <View
+                        style={[
+                          styles.pavatarMore,
+                          { marginLeft: item.participantAvatars.length === 0 ? 0 : -12 },
+                        ]}
+                      >
+                        <Text variant="labelSmall" style={styles.pavatarMoreText}>
+                          +
+                          {item.participantCount - item.participantAvatars.length}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                </View>
+              ) : null}
             </Card.Content>
           </Pressable>
           <Card.Content style={styles.cardFooter}>
@@ -200,6 +240,17 @@ export default function MeetupsScreen() {
                 </Button>
               )}
             </View>
+            {item.joinedByMe ? (
+              <Button
+                mode="outlined"
+                compact
+                icon="forum-outline"
+                style={styles.chatRowBtn}
+                onPress={() => router.push(`/meetup/${item.id}/chat`)}
+              >
+                Group chat
+              </Button>
+            ) : null}
           </Card.Content>
         </View>
       </Card>
@@ -378,7 +429,42 @@ const styles = StyleSheet.create({
   when: {
     color: stitchColors.onSurfaceVariant,
     opacity: 0.85,
-    marginBottom: 14,
+    marginBottom: 8,
+  },
+  goingBlock: { marginTop: 4, marginBottom: 6 },
+  goingLabel: {
+    color: stitchColors.onSurfaceVariant,
+    fontWeight: "700",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    fontSize: 10,
+    marginBottom: 8,
+    opacity: 0.9,
+  },
+  pavatarRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  pavatar: {
+    borderWidth: 2,
+    borderColor: stitchColors.surfaceContainerLow,
+    backgroundColor: stitchColors.surfaceContainerHighest,
+  },
+  pavatarMore: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: stitchColors.surfaceContainerHigh,
+    borderWidth: 2,
+    borderColor: stitchColors.surfaceContainerLow,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 0,
+  },
+  pavatarMoreText: {
+    color: stitchColors.onSurfaceVariant,
+    fontWeight: "700",
+    fontSize: 11,
   },
   row: {
     flexDirection: "row",
@@ -396,5 +482,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   actionBtn: { borderRadius: 999 },
+  chatRowBtn: { marginTop: 10, alignSelf: "stretch", borderRadius: 999 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
 });

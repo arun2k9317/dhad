@@ -3,6 +3,8 @@ import type {
   Comment,
   CommentWithAuthor,
   Meetup,
+  MeetupMessage,
+  MeetupMessageWithAuthor,
   MeetupWithMeta,
   Post,
   PostWithMeta,
@@ -17,6 +19,7 @@ type Seed = {
   comments: Comment[];
   meetups: Meetup[];
   meetupParticipants: { id: string; meetup_id: string; user_id: string }[];
+  meetupMessages: MeetupMessage[];
 };
 
 const deepClone = <T,>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
@@ -31,6 +34,29 @@ function profileById(id: string): Profile | undefined {
 
 function nextId(prefix: string) {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function isMeetupParticipant(meetupId: string, userId: string): boolean {
+  return state.meetupParticipants.some(
+    (mp) => mp.meetup_id === meetupId && mp.user_id === userId
+  );
+}
+
+const MEETUP_AVATAR_PREVIEW_MAX = 6;
+
+/** Stable order (by user id); up to MEETUP_AVATAR_PREVIEW_MAX avatar URLs for list cards. */
+function participantAvatarUrlsForMeetup(meetupId: string): string[] {
+  const ids = state.meetupParticipants
+    .filter((mp) => mp.meetup_id === meetupId)
+    .map((mp) => mp.user_id)
+    .sort();
+  const urls: string[] = [];
+  for (const id of ids) {
+    const url = profileById(id)?.avatar_url;
+    if (url) urls.push(url);
+    if (urls.length >= MEETUP_AVATAR_PREVIEW_MAX) break;
+  }
+  return urls;
 }
 
 export function getCurrentUserId() {
@@ -168,6 +194,7 @@ export async function fetchMeetups(): Promise<MeetupWithMeta[]> {
         ...m,
         creator: profileById(m.creator_id),
         participantCount,
+        participantAvatars: participantAvatarUrlsForMeetup(m.id),
         joinedByMe: state.meetupParticipants.some(
           (mp) => mp.meetup_id === m.id && mp.user_id === uid
         ),
@@ -188,6 +215,7 @@ export async function fetchMeetup(meetupId: string): Promise<MeetupWithMeta | nu
     ...m,
     creator: profileById(m.creator_id),
     participantCount,
+    participantAvatars: participantAvatarUrlsForMeetup(m.id),
     joinedByMe: state.meetupParticipants.some(
       (mp) => mp.meetup_id === m.id && mp.user_id === uid
     ),
@@ -201,6 +229,45 @@ export async function fetchMeetupParticipants(meetupId: string): Promise<Profile
     .filter((mp) => mp.meetup_id === meetupId)
     .map((mp) => mp.user_id);
   return ids.map((id) => profileById(id)).filter(Boolean) as Profile[];
+}
+
+/** Joined participants only; returns empty if the current user is not in the meetup. */
+export async function fetchMeetupMessages(
+  meetupId: string
+): Promise<MeetupMessageWithAuthor[]> {
+  await delay(200);
+  const uid = state.currentUserId;
+  if (!isMeetupParticipant(meetupId, uid)) return [];
+  return state.meetupMessages
+    .filter((msg) => msg.meetup_id === meetupId)
+    .sort(
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    )
+    .map((msg) => ({
+      ...msg,
+      author: profileById(msg.user_id),
+    }));
+}
+
+export async function sendMeetupMessage(
+  meetupId: string,
+  content: string
+): Promise<void> {
+  await delay(220);
+  const uid = state.currentUserId;
+  if (!isMeetupParticipant(meetupId, uid)) {
+    throw new Error("Join this meetup to send messages.");
+  }
+  const trimmed = content.trim();
+  if (!trimmed) return;
+  state.meetupMessages.push({
+    id: nextId("mm"),
+    meetup_id: meetupId,
+    user_id: uid,
+    content: trimmed,
+    created_at: new Date().toISOString(),
+  });
 }
 
 export async function joinMeetup(meetupId: string): Promise<void> {

@@ -18,5 +18,6 @@ export const queryKeys = {
   meetups: ["meetups"] as const,
   meetup: (id: string) => ["meetup", id] as const,
   meetupParticipants: (id: string) => ["meetup", id, "participants"] as const,
+  meetupMessages: (id: string) => ["meetup", id, "messages"] as const,
   profile: (id: string) => ["profile", id] as const,
 };

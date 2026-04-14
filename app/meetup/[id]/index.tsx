@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Image, ScrollView, StyleSheet, View } from "react-native";
 import {
   ActivityIndicator,
@@ -32,22 +32,21 @@ export default function MeetupDetailScreen() {
     enabled: !!meetupId,
   });
 
+  const invalidateMeetup = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.meetup(meetupId) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.meetupParticipants(meetupId) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.meetups });
+    queryClient.invalidateQueries({ queryKey: queryKeys.meetupMessages(meetupId) });
+  };
+
   const joinMutation = useMutation({
     mutationFn: () => demoApi.joinMeetup(meetupId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.meetup(meetupId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.meetupParticipants(meetupId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.meetups });
-    },
+    onSuccess: invalidateMeetup,
   });
 
   const leaveMutation = useMutation({
     mutationFn: () => demoApi.leaveMeetup(meetupId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.meetup(meetupId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.meetupParticipants(meetupId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.meetups });
-    },
+    onSuccess: invalidateMeetup,
   });
 
   if (meetupQuery.isPending) {
@@ -112,6 +111,16 @@ export default function MeetupDetailScreen() {
               </Button>
             )}
           </View>
+          {m.joinedByMe ? (
+            <Button
+              mode="outlined"
+              style={styles.chatBtn}
+              icon="forum-outline"
+              onPress={() => router.push(`/meetup/${meetupId}/chat`)}
+            >
+              Group chat
+            </Button>
+          ) : null}
         </Card.Content>
       </Card>
 
@@ -177,6 +186,7 @@ const styles = StyleSheet.create({
   desc: { marginTop: 12 },
   capacity: { marginTop: 16 },
   actions: { marginTop: 16 },
+  chatBtn: { marginTop: 12 },
   sectionTitle: { marginTop: 8, marginBottom: 4 },
   divider: { marginVertical: 16 },
   pad: { marginVertical: 16 },
