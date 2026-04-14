@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { CoParticipantProfileModal } from "@/components/CoParticipantProfileModal";
+import { LeaveMeetupDialog } from "@/components/LeaveMeetupDialog";
+import { Fragment, useCallback, useMemo, useState } from "react";
 import {
   FlatList,
   Image,
@@ -109,6 +111,13 @@ export default function MeetupsScreen() {
   usePrimaryBrandStatusBar();
   const [heroHeight, setHeroHeight] = useState(MEETUP_HERO_EXPANDED_PH);
   const [heroCollapsed, setHeroCollapsed] = useState(false);
+  const [coPartProfile, setCoPartProfile] = useState<{
+    meetupId: string;
+    userId: string;
+  } | null>(null);
+  const [leaveDialogMeetupId, setLeaveDialogMeetupId] = useState<string | null>(
+    null
+  );
   const queryClient = useQueryClient();
 
   const handleHeroCollapseToggle = useCallback(() => {
@@ -130,6 +139,9 @@ export default function MeetupsScreen() {
       queryClient.invalidateQueries({ queryKey: queryKeys.meetup(meetupId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.meetupParticipants(meetupId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.meetupMessages(meetupId) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.coParticipantProfilesForMeetup(meetupId),
+      });
     },
   });
 
@@ -140,7 +152,11 @@ export default function MeetupsScreen() {
       queryClient.invalidateQueries({ queryKey: queryKeys.meetup(meetupId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.meetupParticipants(meetupId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.meetupMessages(meetupId) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.coParticipantProfilesForMeetup(meetupId),
+      });
     },
+    onSettled: () => setLeaveDialogMeetupId(null),
   });
 
   const renderItem = useCallback(
@@ -175,27 +191,52 @@ export default function MeetupsScreen() {
                     Going
                   </Text>
                   <View style={styles.pavatarRow}>
-                    {item.participantAvatars.map((uri, i) => (
-                      <Avatar.Image
-                        key={`${item.id}-pav-${i}`}
-                        size={36}
-                        source={{ uri }}
-                        style={[
-                          styles.pavatar,
-                          { marginLeft: i === 0 ? 0 : -12, zIndex: item.participantAvatars.length - i },
-                        ]}
-                      />
-                    ))}
-                    {item.participantCount > item.participantAvatars.length ? (
+                    {item.participantPreview.map((pv, i) =>
+                      item.joinedByMe ? (
+                        <Pressable
+                          key={`${item.id}-pav-${pv.user_id}`}
+                          onPress={() =>
+                            setCoPartProfile({ meetupId: item.id, userId: pv.user_id })
+                          }
+                          accessibilityLabel={`View ${pv.user_id} profile`}
+                        >
+                          <Avatar.Image
+                            size={36}
+                            source={{ uri: pv.avatar_url }}
+                            style={[
+                              styles.pavatar,
+                              {
+                                marginLeft: i === 0 ? 0 : -12,
+                                zIndex: item.participantPreview.length - i,
+                              },
+                            ]}
+                          />
+                        </Pressable>
+                      ) : (
+                        <Avatar.Image
+                          key={`${item.id}-pav-${pv.user_id}`}
+                          size={36}
+                          source={{ uri: pv.avatar_url }}
+                          style={[
+                            styles.pavatar,
+                            {
+                              marginLeft: i === 0 ? 0 : -12,
+                              zIndex: item.participantPreview.length - i,
+                            },
+                          ]}
+                        />
+                      )
+                    )}
+                    {item.participantCount > item.participantPreview.length ? (
                       <View
                         style={[
                           styles.pavatarMore,
-                          { marginLeft: item.participantAvatars.length === 0 ? 0 : -12 },
+                          { marginLeft: item.participantPreview.length === 0 ? 0 : -12 },
                         ]}
                       >
                         <Text variant="labelSmall" style={styles.pavatarMoreText}>
                           +
-                          {item.participantCount - item.participantAvatars.length}
+                          {item.participantCount - item.participantPreview.length}
                         </Text>
                       </View>
                     ) : null}
@@ -205,57 +246,93 @@ export default function MeetupsScreen() {
             </Card.Content>
           </Pressable>
           <Card.Content style={styles.cardFooter}>
-            <View style={styles.row}>
+            <View style={styles.footerRow}>
               <Chip
                 compact
-                style={styles.chip}
+                style={styles.footerChip}
                 textStyle={styles.chipText}
                 mode="flat"
               >
                 {item.participantCount}/{item.max_participants} joined
               </Chip>
-              {item.joinedByMe ? (
-                <Button
-                  mode="outlined"
-                  compact
-                  textColor={stitchColors.primary}
-                  style={styles.actionBtn}
-                  onPress={() => leaveMutation.mutate(item.id)}
-                  loading={leaveMutation.isPending}
-                >
-                  Leave
-                </Button>
-              ) : (
-                <Button
-                  mode="contained"
-                  compact
-                  buttonColor={stitchColors.primary}
-                  textColor={stitchColors.onPrimary}
-                  style={styles.actionBtn}
-                  disabled={item.isFull}
-                  onPress={() => joinMutation.mutate(item.id)}
-                  loading={joinMutation.isPending}
-                >
-                  {item.isFull ? "Full" : "Join"}
-                </Button>
-              )}
+              <View style={styles.footerIconRail}>
+                {item.joinedByMe ? (
+                  <>
+                    <IconButton
+                      icon="forum-outline"
+                      mode="contained-tonal"
+                      size={22}
+                      onPress={() => router.push(`/meetup/${item.id}/chat`)}
+                      accessibilityLabel="Open group chat"
+                      style={styles.footerIconBtn}
+                      containerColor={stitchColors.primaryContainer}
+                      iconColor={stitchColors.onPrimaryContainer}
+                    />
+                    <IconButton
+                      icon="exit-to-app"
+                      mode="outlined"
+                      size={22}
+                      onPress={() => setLeaveDialogMeetupId(item.id)}
+                      loading={leaveMutation.isPending}
+                      disabled={leaveMutation.isPending}
+                      accessibilityLabel="Leave meetup"
+                      style={styles.footerIconBtn}
+                      iconColor={stitchColors.tertiary}
+                    />
+                  </>
+                ) : (
+                  <IconButton
+                    icon={item.isFull ? "lock-outline" : "account-plus"}
+                    mode="contained"
+                    size={24}
+                    onPress={() => joinMutation.mutate(item.id)}
+                    loading={joinMutation.isPending}
+                    disabled={item.isFull || joinMutation.isPending}
+                    accessibilityLabel={
+                      item.isFull ? "Meetup is full" : "Join meetup"
+                    }
+                    style={styles.footerIconBtn}
+                    containerColor={
+                      item.isFull
+                        ? stitchColors.surfaceContainerHighest
+                        : stitchColors.primary
+                    }
+                    iconColor={
+                      item.isFull
+                        ? stitchColors.onSurfaceVariant
+                        : stitchColors.onPrimary
+                    }
+                  />
+                )}
+              </View>
             </View>
-            {item.joinedByMe ? (
-              <Button
-                mode="outlined"
-                compact
-                icon="forum-outline"
-                style={styles.chatRowBtn}
-                onPress={() => router.push(`/meetup/${item.id}/chat`)}
-              >
-                Group chat
-              </Button>
-            ) : null}
           </Card.Content>
         </View>
       </Card>
     ),
     [joinMutation, leaveMutation]
+  );
+
+  const coPartModal = (
+    <CoParticipantProfileModal
+      visible={coPartProfile !== null}
+      meetupId={coPartProfile?.meetupId ?? ""}
+      userId={coPartProfile?.userId ?? ""}
+      onDismiss={() => setCoPartProfile(null)}
+    />
+  );
+
+  const leaveDialog = (
+    <LeaveMeetupDialog
+      visible={leaveDialogMeetupId !== null}
+      onDismiss={() => {
+        if (!leaveMutation.isPending) setLeaveDialogMeetupId(null);
+      }}
+      onConfirm={() => {
+        if (leaveDialogMeetupId) leaveMutation.mutate(leaveDialogMeetupId);
+      }}
+      pending={leaveMutation.isPending}
+    />
   );
 
   const listHeader = useMemo(
@@ -275,45 +352,57 @@ export default function MeetupsScreen() {
 
   if (isPending) {
     return (
-      <View style={styles.screen}>
-        <View style={[styles.feedList, { paddingTop: heroHeight }]}>
-          <View style={styles.centered}>
-            <ActivityIndicator size="large" color={stitchColors.primary} />
+      <Fragment>
+        <View style={styles.screen}>
+          <View style={[styles.feedList, { paddingTop: heroHeight }]}>
+            <View style={styles.centered}>
+              <ActivityIndicator size="large" color={stitchColors.primary} />
+            </View>
           </View>
+          {floatingHero}
         </View>
-        {floatingHero}
-      </View>
+        {coPartModal}
+        {leaveDialog}
+      </Fragment>
     );
   }
 
   if (isError || !data) {
     return (
-      <View style={styles.screen}>
-        <View style={[styles.feedList, { paddingTop: heroHeight }]}>
-          <View style={styles.centered}>
-            <Text variant="bodyLarge">Could not load meetups.</Text>
+      <Fragment>
+        <View style={styles.screen}>
+          <View style={[styles.feedList, { paddingTop: heroHeight }]}>
+            <View style={styles.centered}>
+              <Text variant="bodyLarge">Could not load meetups.</Text>
+            </View>
           </View>
+          {floatingHero}
         </View>
-        {floatingHero}
-      </View>
+        {coPartModal}
+        {leaveDialog}
+      </Fragment>
     );
   }
 
   return (
-    <View style={styles.screen}>
-      <FlatList
-        style={styles.feedList}
-        data={data}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        ListHeaderComponent={listHeader}
-        contentContainerStyle={styles.list}
-        refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} />
-        }
-      />
-      {floatingHero}
-    </View>
+    <Fragment>
+      <View style={styles.screen}>
+        <FlatList
+          style={styles.feedList}
+          data={data}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          ListHeaderComponent={listHeader}
+          contentContainerStyle={styles.list}
+          refreshControl={
+            <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} />
+          }
+        />
+        {floatingHero}
+      </View>
+      {coPartModal}
+      {leaveDialog}
+    </Fragment>
   );
 }
 
@@ -466,14 +555,18 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 11,
   },
-  row: {
+  footerRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 8,
+    gap: 10,
+    width: "100%",
   },
-  chip: {
-    alignSelf: "flex-start",
+  footerChip: {
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
+    alignSelf: "center",
     backgroundColor: stitchColors.secondaryContainer,
   },
   chipText: {
@@ -481,7 +574,22 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 11,
   },
-  actionBtn: { borderRadius: 999 },
-  chatRowBtn: { marginTop: 10, alignSelf: "stretch", borderRadius: 999 },
+  footerIconRail: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexShrink: 0,
+    gap: 2,
+    backgroundColor: stitchColors.surfaceContainerHighest,
+    borderRadius: 999,
+    paddingHorizontal: 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: stitchColors.outlineVariant,
+    elevation: 2,
+    shadowColor: "rgba(50, 46, 43, 0.07)",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+  },
+  footerIconBtn: { margin: 0 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
 });

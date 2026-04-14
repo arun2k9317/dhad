@@ -32,6 +32,22 @@ function profileById(id: string): Profile | undefined {
   return state.profiles.find((p) => p.id === id);
 }
 
+/** Personality fields are only exposed to self or via `fetchCoParticipantProfile`. */
+function redactPersonalityTraits(p: Profile): Profile {
+  return {
+    ...p,
+    food_preferences: [],
+    hobbies: [],
+    extracurricular_skills: [],
+  };
+}
+
+function profileForViewer(viewerId: string, target: Profile | undefined): Profile | undefined {
+  if (!target) return undefined;
+  if (target.id === viewerId) return target;
+  return redactPersonalityTraits(target);
+}
+
 function nextId(prefix: string) {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 }
@@ -44,19 +60,23 @@ function isMeetupParticipant(meetupId: string, userId: string): boolean {
 
 const MEETUP_AVATAR_PREVIEW_MAX = 6;
 
-/** Stable order (by user id); up to MEETUP_AVATAR_PREVIEW_MAX avatar URLs for list cards. */
-function participantAvatarUrlsForMeetup(meetupId: string): string[] {
+/** Stable order (by user id); capped previews for meetup list cards. */
+function participantPreviewForMeetup(
+  meetupId: string
+): { user_id: string; avatar_url: string }[] {
   const ids = state.meetupParticipants
     .filter((mp) => mp.meetup_id === meetupId)
     .map((mp) => mp.user_id)
     .sort();
-  const urls: string[] = [];
+  const out: { user_id: string; avatar_url: string }[] = [];
   for (const id of ids) {
-    const url = profileById(id)?.avatar_url;
-    if (url) urls.push(url);
-    if (urls.length >= MEETUP_AVATAR_PREVIEW_MAX) break;
+    const p = profileById(id);
+    if (p?.avatar_url) {
+      out.push({ user_id: id, avatar_url: p.avatar_url });
+    }
+    if (out.length >= MEETUP_AVATAR_PREVIEW_MAX) break;
   }
-  return urls;
+  return out;
 }
 
 export function getCurrentUserId() {
@@ -73,7 +93,7 @@ export async function fetchFeedPosts(): Promise<PostWithMeta[]> {
     )
     .map((post) => ({
       ...post,
-      author: profileById(post.user_id),
+      author: profileForViewer(uid, profileById(post.user_id)),
       likeCount: state.likes.filter((l) => l.post_id === post.id).length,
       likedByMe: state.likes.some(
         (l) => l.post_id === post.id && l.user_id === uid
@@ -89,7 +109,7 @@ export async function fetchPost(postId: string): Promise<PostWithMeta | null> {
   const uid = state.currentUserId;
   return {
     ...post,
-    author: profileById(post.user_id),
+    author: profileForViewer(uid, profileById(post.user_id)),
     likeCount: state.likes.filter((l) => l.post_id === post.id).length,
     likedByMe: state.likes.some(
       (l) => l.post_id === post.id && l.user_id === uid
@@ -102,6 +122,7 @@ export async function fetchPostComments(
   postId: string
 ): Promise<CommentWithAuthor[]> {
   await delay(180);
+  const uid = state.currentUserId;
   return state.comments
     .filter((c) => c.post_id === postId)
     .sort(
@@ -110,7 +131,7 @@ export async function fetchPostComments(
     )
     .map((c) => ({
       ...c,
-      author: profileById(c.user_id),
+      author: profileForViewer(uid, profileById(c.user_id)),
     }));
 }
 
@@ -192,9 +213,9 @@ export async function fetchMeetups(): Promise<MeetupWithMeta[]> {
       ).length;
       return {
         ...m,
-        creator: profileById(m.creator_id),
+        creator: profileForViewer(uid, profileById(m.creator_id)),
         participantCount,
-        participantAvatars: participantAvatarUrlsForMeetup(m.id),
+        participantPreview: participantPreviewForMeetup(m.id),
         joinedByMe: state.meetupParticipants.some(
           (mp) => mp.meetup_id === m.id && mp.user_id === uid
         ),
@@ -213,9 +234,9 @@ export async function fetchMeetup(meetupId: string): Promise<MeetupWithMeta | nu
   ).length;
   return {
     ...m,
-    creator: profileById(m.creator_id),
+    creator: profileForViewer(uid, profileById(m.creator_id)),
     participantCount,
-    participantAvatars: participantAvatarUrlsForMeetup(m.id),
+    participantPreview: participantPreviewForMeetup(m.id),
     joinedByMe: state.meetupParticipants.some(
       (mp) => mp.meetup_id === m.id && mp.user_id === uid
     ),
@@ -225,10 +246,29 @@ export async function fetchMeetup(meetupId: string): Promise<MeetupWithMeta | nu
 
 export async function fetchMeetupParticipants(meetupId: string): Promise<Profile[]> {
   await delay(150);
+  const uid = state.currentUserId;
   const ids = state.meetupParticipants
     .filter((mp) => mp.meetup_id === meetupId)
     .map((mp) => mp.user_id);
-  return ids.map((id) => profileById(id)).filter(Boolean) as Profile[];
+  return ids
+    .map((id) => profileForViewer(uid, profileById(id)))
+    .filter(Boolean) as Profile[];
+}
+
+/**
+ * Full profile including personality traits — only when viewer and target are both
+ * participants of the same meetup (co-participants).
+ */
+export async function fetchCoParticipantProfile(
+  meetupId: string,
+  targetUserId: string
+): Promise<Profile | null> {
+  await delay(200);
+  const viewer = state.currentUserId;
+  if (!isMeetupParticipant(meetupId, viewer)) return null;
+  if (!isMeetupParticipant(meetupId, targetUserId)) return null;
+  const p = profileById(targetUserId);
+  return p ? { ...p } : null;
 }
 
 /** Joined participants only; returns empty if the current user is not in the meetup. */
@@ -341,7 +381,9 @@ export async function createMeetup(input: {
 
 export async function fetchProfile(userId: string): Promise<Profile | null> {
   await delay(200);
-  return profileById(userId) ?? null;
+  const p = profileById(userId);
+  if (!p) return null;
+  return profileForViewer(state.currentUserId, p) ?? null;
 }
 
 /** Dev-only: reset in-memory DB to seed (optional hook). */

@@ -19,5 +19,10 @@ export const queryKeys = {
   meetup: (id: string) => ["meetup", id] as const,
   meetupParticipants: (id: string) => ["meetup", id, "participants"] as const,
   meetupMessages: (id: string) => ["meetup", id, "messages"] as const,
+  coParticipantProfile: (meetupId: string, userId: string) =>
+    ["meetup", meetupId, "coParticipantProfile", userId] as const,
+  /** Prefix to invalidate all co-participant profile queries for a meetup (e.g. after join/leave). */
+  coParticipantProfilesForMeetup: (meetupId: string) =>
+    ["meetup", meetupId, "coParticipantProfile"] as const,
   profile: (id: string) => ["profile", id] as const,
 };

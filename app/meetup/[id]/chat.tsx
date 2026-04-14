@@ -1,11 +1,13 @@
+import { CoParticipantProfileModal } from "@/components/CoParticipantProfileModal";
 import { useFocusEffect } from "@react-navigation/native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { Fragment, useCallback, useRef, useState } from "react";
 import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   StyleSheet,
   View,
 } from "react-native";
@@ -29,6 +31,7 @@ export default function MeetupChatScreen() {
   const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList<MeetupMessageWithAuthor>>(null);
   const [draft, setDraft] = useState("");
+  const [coPartUserId, setCoPartUserId] = useState<string | null>(null);
 
   const meetupQuery = useQuery({
     queryKey: queryKeys.meetup(meetupId),
@@ -56,6 +59,9 @@ export default function MeetupChatScreen() {
       queryClient.invalidateQueries({ queryKey: queryKeys.meetupParticipants(meetupId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.meetups });
       queryClient.invalidateQueries({ queryKey: queryKeys.meetupMessages(meetupId) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.coParticipantProfilesForMeetup(meetupId),
+      });
     },
   });
 
@@ -81,7 +87,13 @@ export default function MeetupChatScreen() {
           style={[styles.bubbleRow, mine ? styles.bubbleRowMine : styles.bubbleRowTheirs]}
         >
           {!mine ? (
-            <Avatar.Image size={36} source={{ uri: item.author?.avatar_url }} style={styles.avatar} />
+            <Pressable onPress={() => setCoPartUserId(item.user_id)}>
+              <Avatar.Image
+                size={36}
+                source={{ uri: item.author?.avatar_url }}
+                style={styles.avatar}
+              />
+            </Pressable>
           ) : null}
           <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
             {!mine ? (
@@ -96,6 +108,15 @@ export default function MeetupChatScreen() {
               {formatChatTime(item.created_at)}
             </Text>
           </View>
+          {mine ? (
+            <Pressable onPress={() => setCoPartUserId(item.user_id)}>
+              <Avatar.Image
+                size={36}
+                source={{ uri: item.author?.avatar_url }}
+                style={styles.avatarMine}
+              />
+            </Pressable>
+          ) : null}
         </View>
       );
     },
@@ -148,6 +169,7 @@ export default function MeetupChatScreen() {
   const messages = messagesQuery.data ?? [];
 
   return (
+    <Fragment>
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -196,6 +218,13 @@ export default function MeetupChatScreen() {
         </Button>
       </View>
     </KeyboardAvoidingView>
+    <CoParticipantProfileModal
+      visible={coPartUserId !== null}
+      meetupId={meetupId}
+      userId={coPartUserId ?? ""}
+      onDismiss={() => setCoPartUserId(null)}
+    />
+    </Fragment>
   );
 }
 
@@ -231,6 +260,7 @@ const styles = StyleSheet.create({
   bubbleRowMine: { justifyContent: "flex-end" },
   bubbleRowTheirs: { justifyContent: "flex-start" },
   avatar: { marginRight: 8, marginTop: 4 },
+  avatarMine: { marginLeft: 8, marginTop: 4 },
   bubble: {
     maxWidth: "82%",
     borderRadius: 16,

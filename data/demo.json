@@ -7,7 +7,10 @@
       "avatar_url": "https://i.pravatar.cc/150?img=12",
       "bio": "Home cook · weekend brunch hunter",
       "reputation_score": 48,
-      "created_at": "2025-01-10T12:00:00.000Z"
+      "created_at": "2025-01-10T12:00:00.000Z",
+      "food_preferences": ["Comfort food", "Weekend brunch", "Plant-forward"],
+      "hobbies": ["Farmers markets", "Sourdough experiments"],
+      "extracurricular_skills": ["Food photography", "Bread scoring"]
     },
     {
       "id": "u2",
@@ -15,7 +18,10 @@
       "avatar_url": "https://i.pravatar.cc/150?img=5",
       "bio": "NYC food diary",
       "reputation_score": 112,
-      "created_at": "2025-02-01T09:00:00.000Z"
+      "created_at": "2025-02-01T09:00:00.000Z",
+      "food_preferences": ["Dim sum", "Tasting menus", "Natural wine"],
+      "hobbies": ["Subway food crawls", "Menu photography"],
+      "extracurricular_skills": ["Reservation juggling", "Splitting bills fairly"]
     },
     {
       "id": "u3",
@@ -23,7 +29,10 @@
       "avatar_url": "https://i.pravatar.cc/150?img=33",
       "bio": "Ramen only",
       "reputation_score": 76,
-      "created_at": "2025-02-15T18:30:00.000Z"
+      "created_at": "2025-02-15T18:30:00.000Z",
+      "food_preferences": ["Tonkotsu", "Tsukemen", "Late-night bowls"],
+      "hobbies": ["Shop hopping", "Broth comparison notes"],
+      "extracurricular_skills": ["Chopstick speed-eating", "Queue strategy"]
     }
   ],
   "posts": [
@@ -145,8 +154,11 @@
   "meetupParticipants": [
     { "id": "mp1", "meetup_id": "m1", "user_id": "u1" },
     { "id": "mp2", "meetup_id": "m1", "user_id": "u3" },
+    { "id": "mp5", "meetup_id": "m1", "user_id": "u2" },
     { "id": "mp3", "meetup_id": "m2", "user_id": "u2" },
-    { "id": "mp4", "meetup_id": "m3", "user_id": "u2" }
+    { "id": "mp7", "meetup_id": "m2", "user_id": "u3" },
+    { "id": "mp4", "meetup_id": "m3", "user_id": "u2" },
+    { "id": "mp6", "meetup_id": "m3", "user_id": "u1" }
   ],
   "meetupMessages": [
     {

@@ -1,5 +1,8 @@
+import { CoParticipantProfileModal } from "@/components/CoParticipantProfileModal";
+import { LeaveMeetupDialog } from "@/components/LeaveMeetupDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
+import { Fragment, useState } from "react";
 import { Image, ScrollView, StyleSheet, View } from "react-native";
 import {
   ActivityIndicator,
@@ -19,6 +22,8 @@ export default function MeetupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const meetupId = typeof id === "string" ? id : id?.[0] ?? "";
   const queryClient = useQueryClient();
+  const [coPartUserId, setCoPartUserId] = useState<string | null>(null);
+  const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
 
   const meetupQuery = useQuery({
     queryKey: queryKeys.meetup(meetupId),
@@ -37,6 +42,9 @@ export default function MeetupDetailScreen() {
     queryClient.invalidateQueries({ queryKey: queryKeys.meetupParticipants(meetupId) });
     queryClient.invalidateQueries({ queryKey: queryKeys.meetups });
     queryClient.invalidateQueries({ queryKey: queryKeys.meetupMessages(meetupId) });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.coParticipantProfilesForMeetup(meetupId),
+    });
   };
 
   const joinMutation = useMutation({
@@ -47,6 +55,7 @@ export default function MeetupDetailScreen() {
   const leaveMutation = useMutation({
     mutationFn: () => demoApi.leaveMeetup(meetupId),
     onSuccess: invalidateMeetup,
+    onSettled: () => setLeaveDialogOpen(false),
   });
 
   if (meetupQuery.isPending) {
@@ -68,6 +77,7 @@ export default function MeetupDetailScreen() {
   const m = meetupQuery.data;
 
   return (
+    <Fragment>
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.heroWrap}>
         <Image
@@ -95,8 +105,8 @@ export default function MeetupDetailScreen() {
             {m.joinedByMe ? (
               <Button
                 mode="contained-tonal"
-                onPress={() => leaveMutation.mutate()}
-                loading={leaveMutation.isPending}
+                onPress={() => setLeaveDialogOpen(true)}
+                loading={leaveMutation.isPending && !leaveDialogOpen}
               >
                 Leave meetup
               </Button>
@@ -130,6 +140,11 @@ export default function MeetupDetailScreen() {
       <List.Item
         title={m.creator?.username ?? "Unknown"}
         description={`Reputation ${m.creator?.reputation_score ?? "—"}`}
+        onPress={
+          m.joinedByMe && m.creator_id
+            ? () => setCoPartUserId(m.creator_id)
+            : undefined
+        }
         left={() => (
           <Avatar.Image size={48} source={{ uri: m.creator?.avatar_url }} />
         )}
@@ -147,11 +162,29 @@ export default function MeetupDetailScreen() {
           <List.Item
             key={p.id}
             title={`@${p.username}`}
+            onPress={
+              m.joinedByMe ? () => setCoPartUserId(p.id) : undefined
+            }
             left={() => <Avatar.Image size={40} source={{ uri: p.avatar_url }} />}
           />
         ))
       )}
     </ScrollView>
+    <CoParticipantProfileModal
+      visible={coPartUserId !== null}
+      meetupId={meetupId}
+      userId={coPartUserId ?? ""}
+      onDismiss={() => setCoPartUserId(null)}
+    />
+    <LeaveMeetupDialog
+      visible={leaveDialogOpen}
+      onDismiss={() => {
+        if (!leaveMutation.isPending) setLeaveDialogOpen(false);
+      }}
+      onConfirm={() => leaveMutation.mutate()}
+      pending={leaveMutation.isPending}
+    />
+    </Fragment>
   );
 }
 

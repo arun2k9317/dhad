@@ -5,6 +5,10 @@ export type Profile = {
   bio: string;
   reputation_score: number;
   created_at: string;
+  /** Shown to self and to meetup co-participants via gated API; redacted elsewhere. */
+  food_preferences: string[];
+  hobbies: string[];
+  extracurricular_skills: string[];
 };
 
 export type Post = {
@@ -73,11 +77,16 @@ export type CommentWithAuthor = Comment & {
   author: Profile | undefined;
 };
 
+export type MeetupParticipantPreview = {
+  user_id: string;
+  avatar_url: string;
+};
+
 export type MeetupWithMeta = Meetup & {
   creator: Profile | undefined;
   participantCount: number;
-  /** Avatar URLs for participants shown on cards (capped in API). */
-  participantAvatars: string[];
+  /** Participant previews for avatars on cards (capped in API). */
+  participantPreview: MeetupParticipantPreview[];
   joinedByMe: boolean;
   isFull: boolean;
 };

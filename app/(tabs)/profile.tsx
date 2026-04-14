@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { ActivityIndicator, Avatar, Card, Text } from "react-native-paper";
+import { ActivityIndicator, Avatar, Card, Chip, Text } from "react-native-paper";
 import { usePrimaryBrandStatusBar } from "@/hooks/usePrimaryBrandStatusBar";
 import { stitchColors } from "@/lib/theme";
 import * as demoApi from "@/lib/demo-api";
@@ -61,6 +61,9 @@ export default function ProfileScreen() {
               <Text variant="bodyLarge" style={styles.bio}>
                 {data.bio}
               </Text>
+              <TraitSection label="Food preferences" items={data.food_preferences} />
+              <TraitSection label="Hobbies" items={data.hobbies} />
+              <TraitSection label="Skills & extras" items={data.extracurricular_skills} />
               <Text variant="bodySmall" style={styles.note}>
                 Demo profile from JSON seed — swap for Supabase when ready.
               </Text>
@@ -68,6 +71,29 @@ export default function ProfileScreen() {
           </Card>
         </View>
       </ScrollView>
+    </View>
+  );
+}
+
+function TraitSection({ label, items }: { label: string; items: string[] }) {
+  if (!items.length) return null;
+  return (
+    <View style={styles.traitBlock}>
+      <Text variant="labelLarge" style={styles.traitLabel}>
+        {label}
+      </Text>
+      <View style={styles.traitChips}>
+        {items.map((t, i) => (
+          <Chip
+            key={`${label}-${i}-${t}`}
+            compact
+            style={styles.traitChip}
+            textStyle={styles.traitChipText}
+          >
+            {t}
+          </Chip>
+        ))}
+      </View>
     </View>
   );
 }
@@ -127,6 +153,16 @@ const styles = StyleSheet.create({
   },
   badgeText: { color: stitchColors.onSecondaryContainer, fontWeight: "600" },
   bio: { marginTop: 16, textAlign: "center", lineHeight: 22 },
+  traitBlock: { marginTop: 18, alignSelf: "stretch", width: "100%" },
+  traitLabel: {
+    color: stitchColors.primaryDim,
+    fontWeight: "700",
+    marginBottom: 8,
+    textAlign: "left",
+  },
+  traitChips: { flexDirection: "row", flexWrap: "wrap", gap: 8, justifyContent: "center" },
+  traitChip: { backgroundColor: stitchColors.secondaryContainer },
+  traitChipText: { color: stitchColors.onSecondaryContainer, fontSize: 12 },
   note: { marginTop: 20, opacity: 0.55, textAlign: "center" },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
 });
