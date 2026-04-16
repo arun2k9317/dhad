@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigation } from "@react-navigation/native";
 import { router } from "expo-router";
-import { useCallback, useLayoutEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -11,6 +11,7 @@ import {
   Text as RNText,
   View,
 } from "react-native";
+import { DiscoveryRadiusModal } from "@/components/DiscoveryRadiusModal";
 import { PostImageCarousel } from "@/components/PostImageCarousel";
 import {
   ActivityIndicator,
@@ -21,8 +22,14 @@ import {
 } from "react-native-paper";
 import { usePrimaryBrandStatusBar } from "@/hooks/usePrimaryBrandStatusBar";
 import { editorialCardShadow, stitchColors } from "@/lib/theme";
+import { useRefreshDiscoveryLocation } from "@/hooks/useDiscoveryLocation";
+import { isWithinDiscoveryRadius } from "@/lib/discovery-filter";
 import * as demoApi from "@/lib/demo-api";
 import { queryKeys } from "@/lib/query-client";
+import {
+  getDiscoveryCenterCoords,
+  useDiscoveryStore,
+} from "@/stores/discovery-store";
 import type { PostWithMeta } from "@/types/demo";
 
 const STORIES: { id: string; label: string; emoji?: string }[] = [
@@ -131,7 +138,21 @@ export default function FeedScreen() {
   usePrimaryBrandStatusBar();
   const [heroHeight, setHeroHeight] = useState(FEED_HERO_PLACEHOLDER_H);
   const [heroCollapsed, setHeroCollapsed] = useState(false);
+  const [discoveryRadiusOpen, setDiscoveryRadiusOpen] = useState(false);
   const navigation = useNavigation();
+  const refreshDiscoveryLocation = useRefreshDiscoveryLocation();
+  const radiusKm = useDiscoveryStore((s) => s.radiusKm);
+  const deviceLatitude = useDiscoveryStore((s) => s.deviceLatitude);
+  const deviceLongitude = useDiscoveryStore((s) => s.deviceLongitude);
+
+  const discoveryCenter = useMemo(
+    () => getDiscoveryCenterCoords({ deviceLatitude, deviceLongitude }),
+    [deviceLatitude, deviceLongitude]
+  );
+
+  useEffect(() => {
+    void refreshDiscoveryLocation();
+  }, [refreshDiscoveryLocation]);
 
   const handleHeroCollapseToggle = useCallback(() => {
     setHeroCollapsed((prev) => {
@@ -147,32 +168,74 @@ export default function FeedScreen() {
     queryFn: () => demoApi.fetchProfile(userId),
   });
 
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: queryKeys.notificationUnread,
+    queryFn: () => demoApi.getUnreadNotificationCount(),
+  });
+
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerLeft: () =>
-        profile?.avatar_url ? (
-          <Avatar.Image
-            size={40}
-            source={{ uri: profile.avatar_url }}
-            style={styles.headerAvatar}
-          />
-        ) : null,
+      headerLeft: () => null,
       headerRight: () => (
-        <IconButton
-          icon="bell-outline"
-          iconColor={stitchColors.onPrimary}
-          onPress={() => {}}
-          style={{ marginRight: 4 }}
-        />
+        <View style={styles.headerRightCluster}>
+          <IconButton
+            icon="radar"
+            iconColor={stitchColors.onPrimary}
+            size={26}
+            onPress={() => setDiscoveryRadiusOpen(true)}
+            accessibilityLabel={`Discovery radius, ${Math.round(radiusKm)} kilometers`}
+            style={styles.headerRadarBtn}
+          />
+          <Pressable
+            onPress={() => router.push("/(tabs)/profile")}
+            accessibilityRole="button"
+            accessibilityLabel="Account and notifications"
+            style={styles.headerRightAvatarPress}
+          >
+            <View style={styles.headerAvatarWrap}>
+              {profile?.avatar_url ? (
+                <Avatar.Image
+                  size={40}
+                  source={{ uri: profile.avatar_url }}
+                  style={styles.headerAvatarRight}
+                />
+              ) : (
+                <Avatar.Icon
+                  size={40}
+                  icon="account"
+                  style={styles.headerAvatarPlaceholder}
+                />
+              )}
+              {unreadCount > 0 ? (
+                <View style={styles.notifBadge} pointerEvents="none">
+                  <RNText style={styles.notifBadgeText}>
+                    {unreadCount > 9 ? "9+" : String(unreadCount)}
+                  </RNText>
+                </View>
+              ) : null}
+            </View>
+          </Pressable>
+        </View>
       ),
-      headerTitleAlign: "left",
     });
-  }, [navigation, profile?.avatar_url]);
+  }, [navigation, profile?.avatar_url, unreadCount, radiusKm]);
 
   const { data, isPending, isError, refetch, isRefetching } = useQuery({
     queryKey: queryKeys.posts,
     queryFn: demoApi.fetchFeedPosts,
   });
+
+  const filteredPosts = useMemo(() => {
+    if (!data?.length) return [];
+    return data.filter((p) =>
+      isWithinDiscoveryRadius(
+        p.latitude,
+        p.longitude,
+        discoveryCenter,
+        radiusKm
+      )
+    );
+  }, [data, discoveryCenter, radiusKm]);
 
   const likeMutation = useMutation({
     mutationFn: (postId: string) => demoApi.toggleLike(postId),
@@ -299,14 +362,32 @@ export default function FeedScreen() {
     <View style={styles.screen}>
       <FlatList
         style={styles.feedList}
-        data={data}
+        data={filteredPosts}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         ListHeaderComponent={listHeader}
+        ListEmptyComponent={
+          data && data.length > 0 ? (
+            <View style={styles.discoveryEmpty}>
+              <Text variant="bodyLarge" style={styles.discoveryEmptyTitle}>
+                Nothing in range
+              </Text>
+              <Text variant="bodyMedium" style={styles.discoveryEmptyBody}>
+                No posts within {Math.round(radiusKm)} km of your discovery
+                center. Open discovery radius (radar icon) and widen the radius,
+                or move closer to where people are posting.
+              </Text>
+            </View>
+          ) : null
+        }
         contentContainerStyle={styles.list}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} />
         }
+      />
+      <DiscoveryRadiusModal
+        visible={discoveryRadiusOpen}
+        onDismiss={() => setDiscoveryRadiusOpen(false)}
       />
       {floatingHero}
     </View>
@@ -344,10 +425,74 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: stitchColors.background,
   },
-  headerAvatar: {
-    marginLeft: 8,
-    borderWidth: 2,
-    borderColor: stitchColors.surfaceContainerLowest,
+  headerRightCluster: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 2,
+  },
+  headerRadarBtn: { margin: 0 },
+  headerRightAvatarPress: {
+    marginRight: 4,
+    paddingVertical: 2,
+    paddingLeft: 4,
+  },
+  discoveryEmpty: {
+    paddingHorizontal: 20,
+    paddingVertical: 32,
+    alignItems: "center",
+  },
+  discoveryEmptyTitle: {
+    fontWeight: "700",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  discoveryEmptyBody: {
+    textAlign: "center",
+    color: stitchColors.onSurfaceVariant,
+    lineHeight: 22,
+  },
+  /** Sized to avatar (40); badge overflows — avoids extra inset that showed a white ring in the corner. */
+  headerAvatarWrap: {
+    position: "relative",
+    width: 40,
+    height: 40,
+    overflow: "visible",
+  },
+  headerAvatarRight: {
+    borderWidth: 1,
+    borderColor: "rgba(255, 239, 234, 0.45)",
+    backgroundColor: stitchColors.primary,
+    elevation: 0,
+    shadowOpacity: 0,
+    shadowRadius: 0,
+  },
+  headerAvatarPlaceholder: {
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 239, 234, 0.45)",
+    elevation: 0,
+    shadowOpacity: 0,
+  },
+  notifBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 4,
+    borderRadius: 9,
+    backgroundColor: stitchColors.tertiary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.92)",
+    zIndex: 2,
+    elevation: 2,
+  },
+  notifBadgeText: {
+    color: stitchColors.onTertiary,
+    fontSize: 10,
+    fontWeight: "700",
   },
   hero: {
     backgroundColor: stitchColors.primary,

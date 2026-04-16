@@ -28,4 +28,6 @@ export const queryKeys = {
   coParticipantProfilesForMeetup: (meetupId: string) =>
     ["meetup", meetupId, "coParticipantProfile"] as const,
   profile: (id: string) => ["profile", id] as const,
+  /** Demo: unread count for feed header avatar badge. */
+  notificationUnread: ["notifications", "unread"] as const,
 };

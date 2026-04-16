@@ -18,6 +18,9 @@ export type Post = {
   image_urls: string[];
   caption: string;
   location: string;
+  /** WGS84 — used with discovery radius (demo + future backend). */
+  latitude: number;
+  longitude: number;
   created_at: string;
 };
 
@@ -41,6 +44,9 @@ export type Meetup = {
   title: string;
   description: string;
   location: string;
+  /** WGS84 — used with discovery radius. */
+  latitude: number;
+  longitude: number;
   datetime: string;
   max_participants: number;
   created_at: string;

@@ -3,7 +3,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
 import { CoParticipantProfileModal } from "@/components/CoParticipantProfileModal";
 import { LeaveMeetupDialog } from "@/components/LeaveMeetupDialog";
-import { Fragment, useCallback, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Image,
@@ -17,15 +17,21 @@ import {
   Avatar,
   Button,
   Card,
-  Chip,
   IconButton,
+  ProgressBar,
   Text,
 } from "react-native-paper";
 import { usePrimaryBrandStatusBar } from "@/hooks/usePrimaryBrandStatusBar";
+import { useRefreshDiscoveryLocation } from "@/hooks/useDiscoveryLocation";
+import { isWithinDiscoveryRadius } from "@/lib/discovery-filter";
 import { formatMeetupWhen } from "@/lib/meetup-format";
 import { editorialCardShadow, stitchColors } from "@/lib/theme";
 import * as demoApi from "@/lib/demo-api";
 import { queryKeys } from "@/lib/query-client";
+import {
+  getDiscoveryCenterCoords,
+  useDiscoveryStore,
+} from "@/stores/discovery-store";
 import type { MeetupWithMeta } from "@/types/demo";
 
 const MEETUP_HERO_EXPANDED_PH = 268;
@@ -120,6 +126,19 @@ export default function MeetupsScreen() {
     null
   );
   const queryClient = useQueryClient();
+  const refreshDiscoveryLocation = useRefreshDiscoveryLocation();
+  const radiusKm = useDiscoveryStore((s) => s.radiusKm);
+  const deviceLatitude = useDiscoveryStore((s) => s.deviceLatitude);
+  const deviceLongitude = useDiscoveryStore((s) => s.deviceLongitude);
+
+  const discoveryCenter = useMemo(
+    () => getDiscoveryCenterCoords({ deviceLatitude, deviceLongitude }),
+    [deviceLatitude, deviceLongitude]
+  );
+
+  useEffect(() => {
+    void refreshDiscoveryLocation();
+  }, [refreshDiscoveryLocation]);
 
   const handleHeroCollapseToggle = useCallback(() => {
     setHeroCollapsed((prev) => {
@@ -132,6 +151,18 @@ export default function MeetupsScreen() {
     queryKey: queryKeys.meetups,
     queryFn: demoApi.fetchMeetups,
   });
+
+  const filteredMeetups = useMemo(() => {
+    if (!data?.length) return [];
+    return data.filter((m) =>
+      isWithinDiscoveryRadius(
+        m.latitude,
+        m.longitude,
+        discoveryCenter,
+        radiusKm
+      )
+    );
+  }, [data, discoveryCenter, radiusKm]);
 
   const joinMutation = useMutation({
     mutationFn: (id: string) => demoApi.joinMeetup(id),
@@ -248,14 +279,20 @@ export default function MeetupsScreen() {
           </Pressable>
           <Card.Content style={styles.cardFooter}>
             <View style={styles.footerRow}>
-              <Chip
-                compact
-                style={styles.footerChip}
-                textStyle={styles.chipText}
-                mode="flat"
-              >
-                {item.participantCount}/{item.max_participants} joined
-              </Chip>
+              <View style={styles.footerProgress}>
+                <Text variant="labelSmall" style={styles.footerProgressLabel}>
+                  {item.participantCount}/{item.max_participants} joined
+                </Text>
+                <ProgressBar
+                  progress={
+                    item.max_participants > 0
+                      ? Math.min(1, item.participantCount / item.max_participants)
+                      : 0
+                  }
+                  color={stitchColors.primary}
+                  style={styles.joinProgressBar}
+                />
+              </View>
               <View style={styles.footerIconRail}>
                 {item.joinedByMe ? (
                   <>
@@ -390,10 +427,23 @@ export default function MeetupsScreen() {
       <View style={styles.screen}>
         <FlatList
           style={styles.feedList}
-          data={data}
+          data={filteredMeetups}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           ListHeaderComponent={listHeader}
+          ListEmptyComponent={
+            data && data.length > 0 ? (
+              <View style={styles.discoveryEmpty}>
+                <Text variant="bodyLarge" style={styles.discoveryEmptyTitle}>
+                  Nothing in range
+                </Text>
+                <Text variant="bodyMedium" style={styles.discoveryEmptyBody}>
+                  No meetups within {Math.round(radiusKm)} km. Adjust discovery
+                  radius from the Feed tab (radar icon) to widen your radius.
+                </Text>
+              </View>
+            ) : null
+          }
           contentContainerStyle={styles.list}
           refreshControl={
             <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} />
@@ -552,17 +602,24 @@ const styles = StyleSheet.create({
     gap: 10,
     width: "100%",
   },
-  footerChip: {
+  footerProgress: {
     flex: 1,
     flexShrink: 1,
     minWidth: 0,
-    alignSelf: "center",
-    backgroundColor: stitchColors.secondaryContainer,
+    alignSelf: "stretch",
+    justifyContent: "center",
+    gap: 6,
   },
-  chipText: {
-    color: stitchColors.onSecondaryContainer,
+  footerProgressLabel: {
+    color: stitchColors.onSurfaceVariant,
     fontWeight: "700",
     fontSize: 11,
+    letterSpacing: 0.2,
+  },
+  joinProgressBar: {
+    height: 8,
+    borderRadius: 999,
+    backgroundColor: stitchColors.surfaceContainerHigh,
   },
   footerIconRail: {
     flexDirection: "row",
@@ -582,4 +639,19 @@ const styles = StyleSheet.create({
   },
   footerIconBtn: { margin: 0 },
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
+  discoveryEmpty: {
+    paddingHorizontal: 20,
+    paddingVertical: 32,
+    alignItems: "center",
+  },
+  discoveryEmptyTitle: {
+    fontWeight: "700",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  discoveryEmptyBody: {
+    textAlign: "center",
+    color: stitchColors.onSurfaceVariant,
+    lineHeight: 22,
+  },
 });

@@ -1,4 +1,5 @@
 import demoSeed from "../data/demo.json";
+import { resolveDemoCoordsForLocationLabel } from "./demo-location-resolve";
 import type {
   Comment,
   CommentWithAuthor,
@@ -13,6 +14,8 @@ import type {
 
 type Seed = {
   currentUserId: string;
+  /** Demo-only: unread in-app notifications for current user (badge on feed avatar). */
+  unreadNotificationCount: number;
   profiles: Profile[];
   posts: Post[];
   likes: { id: string; user_id: string; post_id: string }[];
@@ -81,6 +84,11 @@ function participantPreviewForMeetup(
 
 export function getCurrentUserId() {
   return state.currentUserId;
+}
+
+export async function getUnreadNotificationCount(): Promise<number> {
+  await delay(80);
+  return Math.max(0, state.unreadNotificationCount ?? 0);
 }
 
 export async function fetchFeedPosts(): Promise<PostWithMeta[]> {
@@ -189,12 +197,16 @@ export async function createPost(input: {
       : [
           "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=900&q=80",
         ];
+  const loc = input.location.trim() || "Unknown";
+  const coords = resolveDemoCoordsForLocationLabel(loc);
   state.posts.unshift({
     id: nextId("p"),
     user_id: state.currentUserId,
     image_urls: urls,
     caption: input.caption.trim(),
-    location: input.location.trim() || "Unknown",
+    location: loc,
+    latitude: coords.latitude,
+    longitude: coords.longitude,
     created_at: new Date().toISOString(),
   });
 }
@@ -411,12 +423,16 @@ export async function createMeetup(input: {
   const cover =
     input.cover_image_url?.trim() ||
     DEFAULT_MEETUP_COVERS[state.meetups.length % DEFAULT_MEETUP_COVERS.length];
+  const loc = input.location.trim();
+  const coords = resolveDemoCoordsForLocationLabel(loc);
   state.meetups.push({
     id,
     creator_id: state.currentUserId,
     title: input.title.trim(),
     description: input.description.trim(),
-    location: input.location.trim(),
+    location: loc,
+    latitude: coords.latitude,
+    longitude: coords.longitude,
     datetime: input.datetime,
     max_participants: Math.max(2, Math.min(50, input.max_participants)),
     created_at: new Date().toISOString(),

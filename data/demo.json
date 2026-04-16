@@ -1,5 +1,6 @@
 {
   "currentUserId": "u1",
+  "unreadNotificationCount": 3,
   "profiles": [
     {
       "id": "u1",
@@ -16,7 +17,7 @@
       "id": "u2",
       "username": "maya_eats",
       "avatar_url": "https://i.pravatar.cc/150?img=5",
-      "bio": "NYC food diary",
+      "bio": "Kerala food diary · Malabar to Travancore",
       "reputation_score": 112,
       "created_at": "2025-02-01T09:00:00.000Z",
       "food_preferences": ["Dim sum", "Tasting menus", "Natural wine"],
@@ -27,7 +28,7 @@
       "id": "u3",
       "username": "rico_ramen",
       "avatar_url": "https://i.pravatar.cc/150?img=33",
-      "bio": "Ramen only",
+      "bio": "Porotta nights · coastal bowls",
       "reputation_score": 76,
       "created_at": "2025-02-15T18:30:00.000Z",
       "food_preferences": ["Tonkotsu", "Tsukemen", "Late-night bowls"],
@@ -45,8 +46,10 @@
         "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=900&q=80",
         "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=900&q=80"
       ],
-      "caption": "Farmer’s market haul turned into a rainbow bowl.",
-      "location": "Brooklyn, NY",
+      "caption": "Spice market haul + fresh veg — today’s sadya prep sorted.",
+      "location": "Fort Kochi, Kochi",
+      "latitude": 9.9662,
+      "longitude": 76.2419,
       "created_at": "2026-03-28T14:20:00.000Z"
     },
     {
@@ -57,8 +60,10 @@
         "https://images.unsplash.com/photo-1612874742237-6526221588e3?w=900&q=80",
         "https://images.unsplash.com/photo-1591814466954-e94582e8e32c?w=900&q=80"
       ],
-      "caption": "Late-night tonkotsu. Worth the wait.",
-      "location": "Shibuya, Tokyo",
+      "caption": "Late-night porotta-kurma from a kada. Worth every minute.",
+      "location": "Kozhikode Beach, Kerala",
+      "latitude": 11.2588,
+      "longitude": 75.7804,
       "created_at": "2026-03-27T11:05:00.000Z"
     },
     {
@@ -70,8 +75,10 @@
         "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=900&q=80",
         "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=900&q=80"
       ],
-      "caption": "First sourdough that didn’t collapse. Celebrating small wins.",
-      "location": "Austin, TX",
+      "caption": "First appam didn’t stick to the pan. Celebrating small wins.",
+      "location": "Kowdiar, Thiruvananthapuram",
+      "latitude": 8.5241,
+      "longitude": 76.9366,
       "created_at": "2026-03-26T19:45:00.000Z"
     },
     {
@@ -82,8 +89,10 @@
         "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=900&q=80",
         "https://images.unsplash.com/photo-1551218808-94e220e084d2?w=900&q=80"
       ],
-      "caption": "Anniversary dinner — tasting menu, no regrets.",
-      "location": "Chicago, IL",
+      "caption": "Anniversary dinner — coastal Kerala tasting menu, no regrets.",
+      "location": "Swaraj Round, Thrissur",
+      "latitude": 10.5276,
+      "longitude": 76.2144,
       "created_at": "2026-03-25T20:00:00.000Z"
     }
   ],
@@ -120,9 +129,11 @@
     {
       "id": "m1",
       "creator_id": "u2",
-      "title": "Sunday dim sum crawl",
-      "description": "Meet at the station, hit three spots, split everything family-style.",
-      "location": "Chinatown, Manhattan",
+      "title": "Sunday Malabar brunch crawl",
+      "description": "Meet near the ferry, three stops — biryani, appam, payasam. Split family-style.",
+      "location": "Mattancherry, Kochi",
+      "latitude": 9.9582,
+      "longitude": 76.2591,
       "datetime": "2026-04-06T11:00:00.000Z",
       "max_participants": 8,
       "created_at": "2026-03-20T10:00:00.000Z",
@@ -131,9 +142,11 @@
     {
       "id": "m2",
       "creator_id": "u3",
-      "title": "Ramen shop hop",
-      "description": "Two bowls max per person — pace yourself.",
-      "location": "Nakameguro, Tokyo",
+      "title": "Kozhikode mittai theruvu walk",
+      "description": "Halwa, banana chips, and chai — two sweet stops max, pace yourself.",
+      "location": "Sweet Meat Street, Kozhikode",
+      "latitude": 11.2476,
+      "longitude": 75.7756,
       "datetime": "2026-04-12T18:30:00.000Z",
       "max_participants": 5,
       "created_at": "2026-03-22T08:00:00.000Z",
@@ -142,9 +155,11 @@
     {
       "id": "m3",
       "creator_id": "u1",
-      "title": "Food truck park picnic",
-      "description": "Bring a blanket; we’ll share trays.",
-      "location": "South Congress, Austin",
+      "title": "Alappuzha backwater picnic",
+      "description": "Bring a mat; we’ll share snacks by the canal — banana chips welcome.",
+      "location": "Alappuzha Beach, Kerala",
+      "latitude": 9.4901,
+      "longitude": 76.3264,
       "datetime": "2026-04-08T17:00:00.000Z",
       "max_participants": 12,
       "created_at": "2026-03-25T12:00:00.000Z",
@@ -153,9 +168,11 @@
     {
       "id": "m4",
       "creator_id": "u2",
-      "title": "Brooklyn sunset picnic",
-      "description": "BYO snacks; we’ll grab a spot near the lake.",
-      "location": "Prospect Park, Brooklyn",
+      "title": "Munnar tea estate sunset",
+      "description": "BYO snacks; we’ll find a viewpoint above the tea slopes.",
+      "location": "Munnar, Idukki",
+      "latitude": 10.0889,
+      "longitude": 77.0595,
       "datetime": "2026-04-10T16:00:00.000Z",
       "max_participants": 10,
       "created_at": "2026-03-24T12:00:00.000Z",
@@ -164,9 +181,11 @@
     {
       "id": "m5",
       "creator_id": "u3",
-      "title": "Breakfast taco crawl",
-      "description": "Three stops max — pace yourself.",
-      "location": "Rainey Street, Austin",
+      "title": "Fort Kochi street food evening",
+      "description": "Three stops max — from kada porotta to fresh juice. Pace yourself.",
+      "location": "Fort Kochi, Kerala",
+      "latitude": 9.9675,
+      "longitude": 76.2434,
       "datetime": "2026-04-09T11:00:00.000Z",
       "max_participants": 8,
       "created_at": "2026-03-23T12:00:00.000Z",
@@ -191,28 +210,28 @@
       "id": "mm1",
       "meetup_id": "m1",
       "user_id": "u1",
-      "content": "Should we meet at Canal St exit or inside the station?",
+      "content": "Should we meet near Lulu Mall main entrance or MG Road side?",
       "created_at": "2026-03-28T10:00:00.000Z"
     },
     {
       "id": "mm2",
       "meetup_id": "m1",
       "user_id": "u3",
-      "content": "Canal exit works — I’ll bring cash for carts.",
+      "content": "MG Road works — I’ll grab banana chips for the table.",
       "created_at": "2026-03-28T10:15:00.000Z"
     },
     {
       "id": "mm3",
       "meetup_id": "m1",
       "user_id": "u1",
-      "content": "Perfect. I’ll grab a table number once we’re seated.",
+      "content": "Perfect — I’ll save seats near the biryani section.",
       "created_at": "2026-03-28T10:22:00.000Z"
     },
     {
       "id": "mm4",
       "meetup_id": "m2",
       "user_id": "u2",
-      "content": "Anyone want to start at Ichiran or go straight to Jiro’s cousin spot?",
+      "content": "Beach shacks first, or straight to mittai theruvu for halwa?",
       "created_at": "2026-03-27T09:00:00.000Z"
     }
   ]

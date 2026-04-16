@@ -27,7 +27,13 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "DHAD uses your location to show posts and meetups within your discovery radius."
+        }
+      ]
     ]
   }
 }
