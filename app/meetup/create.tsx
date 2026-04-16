@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { Button, Card, Text, TextInput } from "react-native-paper";
@@ -9,6 +9,11 @@ import { queryKeys } from "@/lib/query-client";
 
 export default function CreateMeetupScreen() {
   const queryClient = useQueryClient();
+  const params = useLocalSearchParams<{ location?: string | string[] }>();
+  const locationFromPost =
+    typeof params.location === "string"
+      ? params.location
+      : params.location?.[0] ?? "";
   const defaultWhen = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() + 5);
@@ -18,7 +23,7 @@ export default function CreateMeetupScreen() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState(locationFromPost);
   const [maxParticipants, setMaxParticipants] = useState("8");
 
   const createMutation = useMutation({
@@ -45,6 +50,9 @@ export default function CreateMeetupScreen() {
           </Text>
           <Text variant="bodySmall" style={styles.hint}>
             Date/time is fixed to five days from first open (18:00 local) for this mock. Wire a picker when you add a backend.
+            {locationFromPost
+              ? " Location was filled in from the post you came from — edit as needed."
+              : ""}
           </Text>
           <TextInput
             label="Title"

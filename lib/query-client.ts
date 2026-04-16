@@ -16,6 +16,9 @@ export const queryKeys = {
   post: (id: string) => ["post", id] as const,
   postComments: (id: string) => ["post", id, "comments"] as const,
   meetups: ["meetups"] as const,
+  /** Meetups whose location relates to a post’s place string (demo matching). */
+  meetupsForLocation: (locationHint: string) =>
+    ["meetups", "forLocation", locationHint] as const,
   meetup: (id: string) => ["meetup", id] as const,
   meetupParticipants: (id: string) => ["meetup", id, "participants"] as const,
   meetupMessages: (id: string) => ["meetup", id, "messages"] as const,

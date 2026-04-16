@@ -149,18 +149,6 @@ export default function FeedScreen() {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => (
-        <RNText
-          style={{
-            fontFamily: "PlusJakartaSans_800ExtraBold",
-            fontSize: 26,
-            color: stitchColors.onPrimary,
-            letterSpacing: -0.8,
-          }}
-        >
-          DHAD
-        </RNText>
-      ),
       headerLeft: () =>
         profile?.avatar_url ? (
           <Avatar.Image

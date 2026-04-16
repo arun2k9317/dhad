@@ -48,6 +48,12 @@ export const stitchColors = {
   infoBannerText: "#0d5c4d",
 } as const;
 
+/**
+ * `FoodCraft` — loaded in `app/_layout.tsx` from `assets/fonts/food_craft.ttf`.
+ * Use for the DHAD title on primary (orange) tab headers.
+ */
+export const fontFamilyDhadBrand = "FoodCraft";
+
 /** @deprecated Use stitchColors — kept for gradual migration */
 export const appColors = stitchColors;
 
@@ -115,10 +121,9 @@ export const primaryBrandHeaderOptions = {
   headerTintColor: stitchColors.onPrimary,
   headerTitleStyle: {
     color: stitchColors.onPrimary,
-    fontWeight: "800" as const,
-    letterSpacing: -0.5,
-    fontFamily: "PlusJakartaSans_800ExtraBold",
-    fontSize: 20,
+    letterSpacing: 0.5,
+    fontFamily: fontFamilyDhadBrand,
+    fontSize: 22,
   } as const,
   headerShadowVisible: false,
 } as const;

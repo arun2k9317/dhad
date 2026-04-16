@@ -22,6 +22,7 @@ import {
   Text,
 } from "react-native-paper";
 import { usePrimaryBrandStatusBar } from "@/hooks/usePrimaryBrandStatusBar";
+import { formatMeetupWhen } from "@/lib/meetup-format";
 import { editorialCardShadow, stitchColors } from "@/lib/theme";
 import * as demoApi from "@/lib/demo-api";
 import { queryKeys } from "@/lib/query-client";
@@ -404,17 +405,6 @@ export default function MeetupsScreen() {
       {leaveDialog}
     </Fragment>
   );
-}
-
-function formatMeetupWhen(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
 }
 
 const styles = StyleSheet.create({

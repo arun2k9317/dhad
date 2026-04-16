@@ -199,6 +199,57 @@ export async function createPost(input: {
   });
 }
 
+/** Heuristic match between a post’s place line and a meetup venue (demo / offline). */
+export function meetupLocationMatchesPost(
+  postLocation: string,
+  meetupLocation: string
+): boolean {
+  const a = postLocation.toLowerCase().trim();
+  const b = meetupLocation.toLowerCase().trim();
+  if (!a || !b) return false;
+  if (a === "unknown" || b === "unknown") return false;
+  if (b.includes(a) || a.includes(b)) return true;
+  const tokenize = (s: string) =>
+    s.split(/[\s,·/]+/).filter((t) => t.length > 2);
+  const tokensA = tokenize(a);
+  const tokensB = tokenize(b);
+  return (
+    tokensA.some((t) => b.includes(t)) || tokensB.some((t) => a.includes(t))
+  );
+}
+
+export async function fetchMeetupsForLocation(
+  locationHint: string
+): Promise<MeetupWithMeta[]> {
+  await delay(200);
+  const hint = locationHint.trim();
+  if (!hint) return [];
+  const uid = state.currentUserId;
+  const filtered = state.meetups.filter((m) =>
+    meetupLocationMatchesPost(hint, m.location)
+  );
+  return [...filtered]
+    .sort(
+      (a, b) =>
+        new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
+    )
+    .map((m) => {
+      const participantCount = state.meetupParticipants.filter(
+        (mp) => mp.meetup_id === m.id
+      ).length;
+      return {
+        ...m,
+        creator: profileForViewer(uid, profileById(m.creator_id)),
+        participantCount,
+        participantPreview: participantPreviewForMeetup(m.id),
+        joinedByMe: state.meetupParticipants.some(
+          (mp) => mp.meetup_id === m.id && mp.user_id === uid
+        ),
+        isFull: participantCount >= m.max_participants,
+      };
+    });
+}
+
 export async function fetchMeetups(): Promise<MeetupWithMeta[]> {
   await delay();
   const uid = state.currentUserId;

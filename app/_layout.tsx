@@ -24,6 +24,7 @@ export default function RootLayout() {
     PlusJakartaSans_500Medium,
     PlusJakartaSans_700Bold,
     PlusJakartaSans_800ExtraBold,
+    FoodCraft: require("../assets/fonts/food_craft.ttf"),
   });
 
   useEffect(() => {

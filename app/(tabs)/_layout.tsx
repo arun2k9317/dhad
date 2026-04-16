@@ -50,7 +50,8 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="explore"
         options={{
-          title: "Explore",
+          title: "DHAD",
+          tabBarLabel: "Explore",
           ...primaryBrandHeaderOptions,
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="magnify" color={color} size={size} />
@@ -60,7 +61,8 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="meetups"
         options={{
-          title: "Meetups",
+          title: "DHAD",
+          tabBarLabel: "Meetups",
           ...primaryBrandHeaderOptions,
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="account-group" color={color} size={size} />
@@ -70,7 +72,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Account",
+          title: "DHAD",
           tabBarLabel: "Account",
           ...primaryBrandHeaderOptions,
           tabBarIcon: ({ color, size }) => (
