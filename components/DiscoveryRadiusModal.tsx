@@ -1,12 +1,12 @@
 import Slider from "@react-native-community/slider";
 import { useEffect } from "react";
-import { Modal, Pressable, StyleSheet, View } from "react-native";
-import { Button, IconButton, Text } from "react-native-paper";
+import { Modal, StyleSheet, View } from "react-native";
+import { Button, IconButton, Surface, Text } from "react-native-paper";
 import { DiscoveryRadiusNativeMap } from "@/components/DiscoveryRadiusNativeMap";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRefreshDiscoveryLocation } from "@/hooks/useDiscoveryLocation";
 import { mapRegionForRadiusKm } from "@/lib/geo";
-import { stitchColors } from "@/lib/theme";
+import { editorialCardShadow, stitchColors } from "@/lib/theme";
 import {
   clampDiscoveryRadiusKm,
   DISCOVERY_RADIUS_MAX_KM,
@@ -53,43 +53,66 @@ export function DiscoveryRadiusModal({ visible, onDismiss }: Props) {
       transparent
       onRequestClose={onDismiss}
     >
-      <Pressable style={styles.backdrop} onPress={onDismiss}>
-        <View style={[styles.sheet, { paddingBottom: 16 + insets.bottom }]}>
+      <View style={styles.overlay} pointerEvents="box-none">
+        <View style={styles.dim} pointerEvents="none" />
+        <Surface
+          style={[
+            styles.sheet,
+            {
+              paddingBottom: Math.max(insets.bottom, 16) + 12,
+              paddingTop: 10,
+            },
+          ]}
+          elevation={5}
+        >
+          <View style={styles.handle} accessible={false} importantForAccessibility="no" />
           <View style={styles.sheetHeader}>
             <View style={styles.sheetTitleBlock}>
-              <Text variant="titleMedium" style={styles.sheetTitle}>
+              <Text variant="labelSmall" style={styles.overline}>
+                Nearby content
+              </Text>
+              <Text variant="titleLarge" style={styles.sheetTitle}>
                 Discovery radius
               </Text>
-              <Text variant="bodySmall" style={styles.sheetSubtitle}>
-                Posts and meetups within this distance appear in your feed and
-                meetups list.
+              <Text variant="bodyMedium" style={styles.sheetSubtitle}>
+                Only posts and meetups within this distance from your map center
+                appear in Feed and Meetups.
               </Text>
             </View>
-            <IconButton icon="close" size={22} onPress={onDismiss} />
+            <IconButton
+              icon="close"
+              mode="contained-tonal"
+              size={22}
+              onPress={onDismiss}
+              accessibilityLabel="Close discovery radius"
+              style={styles.closeBtn}
+              containerColor={stitchColors.surfaceContainerHigh}
+              iconColor={stitchColors.onSurfaceVariant}
+            />
           </View>
 
-          <DiscoveryRadiusNativeMap
-            mapContainerStyle={styles.map}
-            region={region}
-            showsUserLocation={locationPermission === "granted"}
-            centerLatitude={center.latitude}
-            centerLongitude={center.longitude}
-            radiusMeters={radiusKm * 1000}
-            markerTitle="Discovery center"
-            markerDescription={
-              deviceLatitude != null
-                ? "Your location"
-                : "Demo anchor (enable location for GPS)"
-            }
-          />
+          <View style={styles.mapCard}>
+            <DiscoveryRadiusNativeMap
+              mapContainerStyle={styles.map}
+              region={region}
+              showsUserLocation={locationPermission === "granted"}
+              centerLatitude={center.latitude}
+              centerLongitude={center.longitude}
+              radiusMeters={radiusKm * 1000}
+              markerTitle="Discovery center"
+              markerDescription={
+                deviceLatitude != null
+                  ? "Your location"
+                  : "Demo anchor (enable location for GPS)"
+              }
+            />
+          </View>
 
-          <View style={styles.sliderBlock}>
-            <View style={styles.sliderLabels}>
-              <Text variant="labelLarge" style={styles.kmValue}>
-                {Math.round(radiusKm)} km
-              </Text>
-              <Text variant="bodySmall" style={styles.sliderHint}>
-                {DISCOVERY_RADIUS_MIN_KM}–{DISCOVERY_RADIUS_MAX_KM} km
+          <Surface style={styles.sliderCard} elevation={0}>
+            <View style={styles.sliderHeader}>
+              <Text style={styles.radiusValue}>{Math.round(radiusKm)} km</Text>
+              <Text variant="bodySmall" style={styles.sliderRangeLabel}>
+                Range {DISCOVERY_RADIUS_MIN_KM}–{DISCOVERY_RADIUS_MAX_KM} km
               </Text>
             </View>
             <Slider
@@ -100,82 +123,144 @@ export function DiscoveryRadiusModal({ visible, onDismiss }: Props) {
               value={radiusKm}
               onValueChange={(v) => setRadiusKm(clampDiscoveryRadiusKm(v))}
               minimumTrackTintColor={stitchColors.primary}
-              maximumTrackTintColor={stitchColors.surfaceContainerHigh}
+              maximumTrackTintColor={stitchColors.outlineVariant}
               thumbTintColor={stitchColors.primary}
             />
             <Text variant="bodySmall" style={styles.locationHint}>
               {deviceLatitude != null
-                ? "Using your device location as the center."
+                ? "Center: your device location."
                 : locationPermission === "denied"
-                  ? "Location off — using a demo map anchor (Kochi, Kerala). Enable location in settings for GPS."
+                  ? "Center: demo anchor (Kochi, Kerala). Enable location in settings to use GPS."
                   : "Locating… If GPS is unavailable, we use a demo anchor."}
             </Text>
-          </View>
+          </Surface>
 
-          <Button mode="contained" onPress={onDismiss} style={styles.doneBtn}>
+          <Button
+            mode="contained"
+            onPress={onDismiss}
+            style={styles.doneBtn}
+            contentStyle={styles.doneBtnContent}
+            labelStyle={styles.doneLabel}
+          >
             Done
           </Button>
-        </View>
-      </Pressable>
+        </Surface>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
+  overlay: {
     flex: 1,
-    backgroundColor: "rgba(50, 46, 43, 0.45)",
     justifyContent: "flex-end",
+  },
+  /** Dimmed area is non-interactive — taps do not dismiss (avoids accidental close while using the slider). */
+  dim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(32, 28, 26, 0.52)",
   },
   sheet: {
     backgroundColor: stitchColors.surfaceContainerLowest,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 16,
-    paddingTop: 8,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
     maxHeight: "92%",
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: stitchColors.outlineVariant,
+  },
+  handle: {
+    alignSelf: "center",
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: stitchColors.outlineVariant,
+    marginBottom: 14,
+    opacity: 0.85,
   },
   sheetHeader: {
     flexDirection: "row",
     alignItems: "flex-start",
     justifyContent: "space-between",
-    gap: 8,
-    marginBottom: 8,
+    gap: 12,
+    marginBottom: 16,
   },
   sheetTitleBlock: { flex: 1, minWidth: 0, paddingRight: 4 },
+  overline: {
+    color: stitchColors.primary,
+    fontWeight: "700",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    marginBottom: 4,
+    opacity: 0.92,
+  },
   sheetTitle: {
     color: stitchColors.onSurface,
     fontWeight: "700",
-    letterSpacing: -0.2,
+    letterSpacing: -0.35,
+    marginBottom: 6,
   },
   sheetSubtitle: {
     color: stitchColors.onSurfaceVariant,
-    marginTop: 4,
-    lineHeight: 18,
+    lineHeight: 22,
+    letterSpacing: -0.1,
+  },
+  closeBtn: { margin: 0, marginTop: -2 },
+  mapCard: {
+    borderRadius: 16,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: stitchColors.outlineVariant,
+    backgroundColor: stitchColors.surfaceContainer,
+    ...editorialCardShadow,
   },
   map: {
     width: "100%",
-    height: 220,
+    height: 232,
     borderRadius: 16,
     overflow: "hidden",
   },
-  sliderBlock: { marginTop: 12 },
-  sliderLabels: {
+  sliderCard: {
+    marginTop: 18,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    backgroundColor: stitchColors.surfaceContainer,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: stitchColors.outlineVariant,
+  },
+  sliderHeader: {
     flexDirection: "row",
     alignItems: "baseline",
     justifyContent: "space-between",
-    marginBottom: 4,
+    marginBottom: 10,
   },
-  kmValue: {
-    color: stitchColors.primary,
+  radiusValue: {
+    fontSize: 26,
     fontWeight: "700",
+    color: stitchColors.primary,
+    letterSpacing: -0.5,
   },
-  sliderHint: { color: stitchColors.onSurfaceVariant, opacity: 0.85 },
-  slider: { width: "100%", height: 44 },
-  locationHint: {
-    marginTop: 8,
+  sliderRangeLabel: {
     color: stitchColors.onSurfaceVariant,
-    lineHeight: 18,
+    opacity: 0.88,
   },
-  doneBtn: { marginTop: 8, borderRadius: 12 },
+  slider: {
+    width: "100%",
+    height: 48,
+    marginVertical: 4,
+  },
+  locationHint: {
+    marginTop: 10,
+    color: stitchColors.onSurfaceVariant,
+    lineHeight: 20,
+    opacity: 0.95,
+  },
+  doneBtn: {
+    marginTop: 16,
+    borderRadius: 14,
+    alignSelf: "stretch",
+  },
+  doneBtnContent: { paddingVertical: 8 },
+  doneLabel: { fontSize: 15, fontWeight: "700", letterSpacing: 0.2 },
 });

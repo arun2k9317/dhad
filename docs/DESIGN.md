@@ -15,11 +15,13 @@ Use **“Discovery radius”** in UI, accessibility labels, and settings. The fe
 - **Center**: Uses **device GPS** when foreground location permission is granted; otherwise a **demo anchor** (Kochi, Kerala) so the offline demo still works.
 - **Radius**: Persisted locally (1–500 km, default **220 km** so the Kochi demo anchor still shows seed content across Kerala). Changing the slider updates the map ring and **immediately** refilters the feed and meetups list.
 - **Map UI**: Full **map + circle overlay** on **iOS and Android**. On **web**, a lightweight radar placeholder is shown with the same slider (native maps are not required for the demo).
+- **Discovery radius sheet**: Tapping the dimmed backdrop does **not** dismiss the sheet (avoids accidental close while dragging the slider). Users close via the header **close** control or **Done**.
 
 ### Data model (demo)
 
 - Each **post** and **meetup** includes `latitude` and `longitude` (WGS84).
 - New content created in the app gets coordinates from **keyword rules** on the location string (`lib/demo-location-resolve.ts`) until a real geocoder exists.
+- Demo **photos** in `data/demo.json` use **Pexels** hotlinks (`images.pexels.com/...jpeg?auto=compress&cs=tinysrgb&w=900`) for reliable loading without an Unsplash API key. Fallbacks for new posts/meetups live in `lib/demo-food-images.ts`.
 
 ### Future (production)
 

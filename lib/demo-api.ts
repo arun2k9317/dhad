@@ -1,4 +1,5 @@
 import demoSeed from "../data/demo.json";
+import { DEMO_MEETUP_COVER_ROTATION, DEMO_POST_FALLBACK_IMAGE } from "./demo-food-images";
 import { resolveDemoCoordsForLocationLabel } from "./demo-location-resolve";
 import type {
   Comment,
@@ -194,9 +195,7 @@ export async function createPost(input: {
   const urls =
     input.imageUrls.length > 0
       ? input.imageUrls
-      : [
-          "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=900&q=80",
-        ];
+      : [DEMO_POST_FALLBACK_IMAGE];
   const loc = input.location.trim() || "Unknown";
   const coords = resolveDemoCoordsForLocationLabel(loc);
   state.posts.unshift({
@@ -404,11 +403,7 @@ export async function leaveMeetup(meetupId: string): Promise<void> {
   );
 }
 
-const DEFAULT_MEETUP_COVERS = [
-  "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=900&q=80",
-  "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&q=80",
-  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=900&q=80",
-];
+const DEFAULT_MEETUP_COVERS = [...DEMO_MEETUP_COVER_ROTATION];
 
 export async function createMeetup(input: {
   title: string;
