@@ -309,16 +309,7 @@ export default function FeedScreen() {
   );
 
   const listHeader = useMemo(
-    () => (
-      <View>
-        <View style={{ height: heroHeight }} />
-        <View style={styles.demoStrip}>
-          <Text variant="labelMedium" style={styles.demoStripText}>
-            Demo data · edit data/demo.json
-          </Text>
-        </View>
-      </View>
-    ),
+    () => <View style={{ height: heroHeight }} />,
     [heroHeight]
   );
 
@@ -567,14 +558,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     opacity: 0.9,
   },
-  demoStrip: {
-    backgroundColor: stitchColors.infoBannerBg,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: stitchColors.outlineVariant,
-  },
-  demoStripText: { color: stitchColors.infoBannerText },
   list: { padding: 12, paddingBottom: 24, gap: 14, paddingTop: 12 },
   card: {
     marginBottom: 4,

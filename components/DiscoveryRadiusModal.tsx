@@ -5,7 +5,6 @@ import { Button, IconButton, Surface, Text } from "react-native-paper";
 import { DiscoveryRadiusNativeMap } from "@/components/DiscoveryRadiusNativeMap";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRefreshDiscoveryLocation } from "@/hooks/useDiscoveryLocation";
-import { mapRegionForRadiusKm } from "@/lib/geo";
 import { editorialCardShadow, stitchColors } from "@/lib/theme";
 import {
   clampDiscoveryRadiusKm,
@@ -39,12 +38,6 @@ export function DiscoveryRadiusModal({ visible, onDismiss }: Props) {
       void refreshLocation();
     }
   }, [visible, refreshLocation]);
-
-  const region = mapRegionForRadiusKm(
-    center.latitude,
-    center.longitude,
-    radiusKm
-  );
 
   return (
     <Modal
@@ -92,20 +85,21 @@ export function DiscoveryRadiusModal({ visible, onDismiss }: Props) {
           </View>
 
           <View style={styles.mapCard}>
-            <DiscoveryRadiusNativeMap
-              mapContainerStyle={styles.map}
-              region={region}
-              showsUserLocation={locationPermission === "granted"}
-              centerLatitude={center.latitude}
-              centerLongitude={center.longitude}
-              radiusMeters={radiusKm * 1000}
-              markerTitle="Discovery center"
-              markerDescription={
-                deviceLatitude != null
-                  ? "Your location"
-                  : "Demo anchor (enable location for GPS)"
-              }
-            />
+            {visible ? (
+              <DiscoveryRadiusNativeMap
+                active={visible}
+                mapContainerStyle={styles.map}
+                centerLatitude={center.latitude}
+                centerLongitude={center.longitude}
+                radiusMeters={radiusKm * 1000}
+                markerTitle="Discovery center"
+                markerDescription={
+                  deviceLatitude != null
+                    ? "Your location"
+                    : "Demo anchor (enable location for GPS)"
+                }
+              />
+            ) : null}
           </View>
 
           <Surface style={styles.sliderCard} elevation={0}>
@@ -207,6 +201,7 @@ const styles = StyleSheet.create({
   },
   closeBtn: { margin: 0, marginTop: -2 },
   mapCard: {
+    height: 232,
     borderRadius: 16,
     overflow: "hidden",
     borderWidth: 1,
@@ -215,10 +210,10 @@ const styles = StyleSheet.create({
     ...editorialCardShadow,
   },
   map: {
+    flex: 1,
     width: "100%",
     height: 232,
-    borderRadius: 16,
-    overflow: "hidden",
+    backgroundColor: stitchColors.surfaceContainer,
   },
   sliderCard: {
     marginTop: 18,

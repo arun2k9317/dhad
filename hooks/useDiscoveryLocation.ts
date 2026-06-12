@@ -8,15 +8,19 @@ export function useRefreshDiscoveryLocation() {
   const setLocationPermission = useDiscoveryStore((s) => s.setLocationPermission);
 
   return useCallback(async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setLocationPermission("denied");
+        return;
+      }
+      setLocationPermission("granted");
+      const pos = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      setDeviceCoords(pos.coords.latitude, pos.coords.longitude);
+    } catch {
       setLocationPermission("denied");
-      return;
     }
-    setLocationPermission("granted");
-    const pos = await Location.getCurrentPositionAsync({
-      accuracy: Location.Accuracy.Balanced,
-    });
-    setDeviceCoords(pos.coords.latitude, pos.coords.longitude);
   }, [setDeviceCoords, setLocationPermission]);
 }
