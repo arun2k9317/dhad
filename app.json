@@ -4,7 +4,7 @@
     "slug": "dhad",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/images/dhad_logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -17,11 +17,16 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/dhad_logo.png",
+        "backgroundColor": "#a13900"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.aruns4505.dhad"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -34,6 +39,12 @@
           "locationWhenInUsePermission": "DHAD uses your location to show posts and meetups within your discovery radius."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "04e3f3ed-8e7d-4a12-a698-768a8e7eb9bd"
+      }
+    }
   }
 }

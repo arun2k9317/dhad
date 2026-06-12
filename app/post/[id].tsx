@@ -9,6 +9,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import { SafeAreaScrollView } from "@/components/SafeAreaScrollView";
 import { PostImageCarousel } from "@/components/PostImageCarousel";
 import {
   ActivityIndicator,
@@ -274,7 +275,7 @@ export default function PostDetailScreen() {
   const post = postQuery.data;
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.scrollContent}>
+    <SafeAreaScrollView style={styles.screen} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
         <Avatar.Image size={48} source={{ uri: post.author?.avatar_url }} />
         <View style={styles.headerText}>
@@ -386,7 +387,7 @@ export default function PostDetailScreen() {
           }
         />
       </View>
-    </ScrollView>
+    </SafeAreaScrollView>
   );
 }
 

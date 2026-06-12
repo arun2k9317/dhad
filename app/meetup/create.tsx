@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
+import { SafeAreaScrollView } from "@/components/SafeAreaScrollView";
 import { Button, Card, Text, TextInput } from "react-native-paper";
 import { stitchColors } from "@/lib/theme";
 import * as demoApi from "@/lib/demo-api";
@@ -42,7 +43,7 @@ export default function CreateMeetupScreen() {
   });
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <SafeAreaScrollView contentContainerStyle={styles.container}>
       <Card style={styles.card}>
         <Card.Content>
           <Text variant="titleMedium" style={styles.title}>
@@ -95,7 +96,7 @@ export default function CreateMeetupScreen() {
           </Button>
         </Card.Content>
       </Card>
-    </ScrollView>
+    </SafeAreaScrollView>
   );
 }
 

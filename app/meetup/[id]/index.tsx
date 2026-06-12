@@ -3,7 +3,8 @@ import { LeaveMeetupDialog } from "@/components/LeaveMeetupDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { Fragment, useState } from "react";
-import { Image, ScrollView, StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
+import { SafeAreaScrollView } from "@/components/SafeAreaScrollView";
 import {
   ActivityIndicator,
   Avatar,
@@ -78,7 +79,7 @@ export default function MeetupDetailScreen() {
 
   return (
     <Fragment>
-    <ScrollView contentContainerStyle={styles.container}>
+    <SafeAreaScrollView contentContainerStyle={styles.container}>
       <View style={styles.heroWrap}>
         <Image
           source={{ uri: m.cover_image_url }}
@@ -169,7 +170,7 @@ export default function MeetupDetailScreen() {
           />
         ))
       )}
-    </ScrollView>
+    </SafeAreaScrollView>
     <CoParticipantProfileModal
       visible={coPartUserId !== null}
       meetupId={meetupId}

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { SafeAreaScrollView } from "@/components/SafeAreaScrollView";
 import {
   ActivityIndicator,
   Avatar,
@@ -38,7 +39,7 @@ export function CoParticipantProfileModal({
         onDismiss={onDismiss}
         contentContainerStyle={styles.modalWrap}
       >
-        <ScrollView
+        <SafeAreaScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollInner}
           keyboardShouldPersistTaps="handled"
@@ -66,7 +67,7 @@ export function CoParticipantProfileModal({
               <TraitBlock label="Skills & extras" items={data.extracurricular_skills} />
             </>
           )}
-        </ScrollView>
+        </SafeAreaScrollView>
       </Modal>
     </Portal>
   );

@@ -1,6 +1,7 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useCallback, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { SafeAreaScrollView } from "@/components/SafeAreaScrollView";
 import { Card, IconButton, Searchbar, Text } from "react-native-paper";
 import { usePrimaryBrandStatusBar } from "@/hooks/usePrimaryBrandStatusBar";
 import { stitchColors } from "@/lib/theme";
@@ -121,11 +122,12 @@ export default function ExploreScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScrollView
+      <SafeAreaScrollView
         style={styles.scrollFill}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        bottomInset={false}
       >
         <View style={{ height: heroHeight }} />
         <View style={styles.belowHero}>
@@ -154,7 +156,7 @@ export default function ExploreScreen() {
             </Card.Content>
           </Card>
         </View>
-      </ScrollView>
+      </SafeAreaScrollView>
       {floatingHero}
     </View>
   );

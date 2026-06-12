@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { SafeAreaScrollView } from "@/components/SafeAreaScrollView";
 import { ActivityIndicator, Avatar, Card, Chip, Text } from "react-native-paper";
 import { usePrimaryBrandStatusBar } from "@/hooks/usePrimaryBrandStatusBar";
 import { stitchColors } from "@/lib/theme";
@@ -42,10 +43,11 @@ export default function ProfileScreen() {
           />
         </View>
       </View>
-      <ScrollView
+      <SafeAreaScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        bottomInset={false}
       >
         <View style={styles.profileBlock}>
           <Card style={styles.card} mode="elevated" elevation={3}>
@@ -70,7 +72,7 @@ export default function ProfileScreen() {
             </Card.Content>
           </Card>
         </View>
-      </ScrollView>
+      </SafeAreaScrollView>
     </View>
   );
 }

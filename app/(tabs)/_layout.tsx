@@ -1,5 +1,6 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Tabs } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   stitchColors,
   navigationHeaderOptions,
@@ -7,6 +8,8 @@ import {
 } from "@/lib/theme";
 
 export default function TabsLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
@@ -20,7 +23,8 @@ export default function TabsLayout() {
           borderTopLeftRadius: 48,
           borderTopRightRadius: 48,
           paddingTop: 8,
-          paddingBottom: 4,
+          paddingBottom: Math.max(insets.bottom, 4),
+          height: 56 + Math.max(insets.bottom, 4),
           shadowColor: "rgba(50, 46, 43, 0.08)",
           shadowOffset: { width: 0, height: -10 },
           shadowOpacity: 1,
